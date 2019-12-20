@@ -1,9 +1,10 @@
 package com.xieyy.send;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @date 2019/12/13 16:36
  */
 @RestController
+@Slf4j
 public class SendController {
 
     @Autowired
@@ -18,15 +20,10 @@ public class SendController {
     @Autowired
     private RabbitAdmin rabbitAdmin;
 
-    @GetMapping("/send")
-    public String send(String message) {
-        rabbitTemplate.convertAndSend("xieyy-springboot-exchange", "xieyy-springboot-routingkey", message);
-        return "success";
-    }
-
-    @GetMapping("/config")
-    public String config(String message) {
-        rabbitTemplate.convertAndSend("xieyy-springboot-exchange", "xieyy-springboot-routingkey", message);
+    @PostMapping("/send")
+    public String send(String message, String exchange, String routingKey) {
+        log.info("发布的消息为：{}", message);
+        rabbitTemplate.convertAndSend(exchange, routingKey, message);
         return "success";
     }
 
