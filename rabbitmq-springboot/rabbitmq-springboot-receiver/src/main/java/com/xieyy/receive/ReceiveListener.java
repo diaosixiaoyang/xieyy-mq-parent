@@ -4,15 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.listener.RabbitListenerContainerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.io.UnsupportedEncodingException;
 
-import static com.xieyy.config.RabbitMqConfig.*;
+import static com.xieyy.config.RabbitMqConfig.QUEUE_NAME2;
 
 /**
  * @author xieyyt
@@ -30,13 +26,13 @@ public class ReceiveListener implements MessageListener {
      *
      * @param message
      */
-    @RabbitListener(queues = {QUEUE_NAME}, containerFactory = "xyyContainerFactory")
-//    @RabbitListener(queues = {QUEUE_NAME})
+//    @RabbitListener(queues = {QUEUE_NAME}, containerFactory = "xyyContainerFactory")
+    @RabbitListener(queues = {QUEUE_NAME2})
     public void onMessage(Message message) {
         try {
-            log.info("接收到的消息为：{}", new String(message.getBody(), "UTF-8"));
+            log.info("ReceiveListener接收到的消息为：{}", new String(message.getBody(), "UTF-8"));
         } catch (UnsupportedEncodingException e) {
-            log.error("发生异常:{}", e);
+            log.error(e.getMessage(), e);
         }
     }
 }

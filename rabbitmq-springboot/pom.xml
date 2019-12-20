@@ -11,6 +11,7 @@
     <modules>
         <module>rabbitmq-springboot-sender</module>
         <module>rabbitmq-springboot-receiver</module>
+        <module>rabbitmq-springboot-baselistener</module>
     </modules>
     <modelVersion>4.0.0</modelVersion>
 

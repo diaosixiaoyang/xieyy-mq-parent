@@ -24,9 +24,9 @@ public class QueueController {
 
     @PostMapping("/publish")
     public String publish(String exchangeName, String routingKey, String queueName) {
-        Exchange exchange = new TopicExchange(exchangeName, false, true, null);
+        Exchange exchange = new TopicExchange(exchangeName, false, false, null);
         rabbitAdmin.declareExchange(exchange);
-        Queue queue = new Queue(queueName, false, false, true);
+        Queue queue = new Queue(queueName, false, false, false);
         rabbitAdmin.declareQueue(queue);
         Binding binding = new Binding(queueName, Binding.DestinationType.QUEUE, exchangeName, routingKey, null);
         rabbitAdmin.declareBinding(binding);

@@ -1,24 +1,38 @@
 package com.xieyy.config;
 
+import com.xieyy.receive.BaseListener;
+import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerEndpoint;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.RabbitListenerContainerFactory;
+import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author xieyyt
- * @date 2019/12/13 16:43
+ * @date 2019/12/20 9:54
  */
 @Configuration
-public class RabbitMqConfig {
+public class BaseConsomerConfig {
 
-    public static final String QUEUE_NAME = "xieyy-001";
-    public static final String QUEUE_NAME2 = "xieyy-002";
+    @Autowired
+    private BaseListener baseListener;
+    @Resource
+    private RabbitListenerEndpointRegistry rabbitListenerEndpointRegistry;
+
+    private static final String[] queueNames = {"xieyy-base-01", "xieyy-base-02"};
 
     @Bean
     public ThreadPoolTaskExecutor threadPoolTaskExecutor() {
@@ -49,13 +63,6 @@ public class RabbitMqConfig {
         return connectionFactory;
     }
 
-//    @Bean
-//    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
-//        RabbitTemplate rabbitTemplate = new RabbitTemplate();
-//        rabbitTemplate.setConnectionFactory(connectionFactory);
-//        return rabbitTemplate;
-//    }
-
     /**
      * 使用多线程模仿多个消费者，需要首先配置多线程的信息，然后再配置此信息，主要配置参数concurrentConsumers
      * 并且需要在listener中 @RabbitListener设置containerFactory为该bean的名字
@@ -66,15 +73,20 @@ public class RabbitMqConfig {
     @Bean("xyyContainerFactory")
     public RabbitListenerContainerFactory rabbitListenerContainerFactory(ConnectionFactory connectionFactory) {
         SimpleRabbitListenerContainerFactory containerFactory = new SimpleRabbitListenerContainerFactory();
-        containerFactory.setConnectionFactory(connectionFactory);
-//        containerFactory.createListenerContainer();
+        SimpleRabbitListenerEndpoint endpoint = new SimpleRabbitListenerEndpoint();
+        endpoint.setQueueNames(queueNames);
+//        endpoint.setGroup("xieyy-group");
+        endpoint.setId("xieyy-id");
+        endpoint.setMessageListener(baseListener);
+        endpoint.setAckMode(AcknowledgeMode.AUTO);
+
+        containerFactory.createListenerContainer(endpoint);
         containerFactory.setTaskExecutor(threadPoolTaskExecutor());
+        containerFactory.setConnectionFactory(connectionFactory);
         containerFactory.setConcurrentConsumers(Runtime.getRuntime().availableProcessors() * 2);
+        rabbitListenerEndpointRegistry.registerListenerContainer(endpoint, containerFactory, true);
 //        containerFactory.setMaxConcurrentConsumers(Runtime.getRuntime().availableProcessors() * 4);
 //        containerFactory.setPrefetchCount(1000);
-//        SimpleRabbitListenerEndpoint rabbitListenerEndpoint = new SimpleRabbitListenerEndpoint();
-//        rabbitListenerEndpoint.setQueueNames("xieyy-001");
-//        rabbitListenerEndpoint.setMessageListener(receiveListener);
 
         return containerFactory;
     }
